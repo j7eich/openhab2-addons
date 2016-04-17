@@ -4,21 +4,30 @@
         xmlns:thing="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0"
         xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
 
-    <!-- Sample Thing Type -->
-    <thing-type id="sample">
-        <label>AvmTr064 Binding Thing</label>
-        <description>Sample thing for AvmTr064 Binding</description>
+    <!--FRITZ!Box Thing Type-->
+    <thing-type id="fritzbox">
+        <label>AVM FRITZ!Box</label>
+        <description>AVM FRITZ!Box</description>
+        <channel-groups>
+        	<channel-group typeId="wanip" id="wanip" />
+        </channel-groups>
 
-        <channels>
-            <channel id="channel1" typeId="sample-channel"/>
-        </channels>
-    </thing-type>
+        
+    </thing-type><!--WAN IP Connection channels-->
+    <channel-group-type id="wanip">
+    	<label>Internet Connection</label>
+    	<description>Group for several channels related to the Internet Connection</description>
+    	<channels>
+    		<channel typeId="conn-status" id="conn-status"></channel>
+    	</channels>
+    </channel-group-type>
 
     <!-- Sample Channel Type -->
-    <channel-type id="sample-channel">
-        <item-type>avmtr064Item</item-type>
-        <label>AvmTr064 Binding Channel</label>
-        <description>Sample channel for AvmTr064 Binding</description>
+    <channel-type id="conn-status">
+        <item-type>String</item-type>
+        <label>Connection Status</label>
+        <description>Connection Status</description>
+        <state readOnly="true"></state>
     </channel-type>
 
 </thing:thing-descriptions>
