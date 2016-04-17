@@ -7,7 +7,7 @@
  */
 package org.openhab.binding.avmtr064.handler;
 
-import static org.openhab.binding.avmtr064.AvmTr064BindingConstants.*;
+import static org.openhab.binding.avmtr064.AvmTr064BindingConstants.CHANNEL_CONNSTATUS;
 
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
@@ -20,20 +20,20 @@ import org.slf4j.LoggerFactory;
 /**
  * The {@link AvmTr064Handler} is responsible for handling commands, which are
  * sent to one of the channels.
- * 
+ *
  * @author Jan Siebeneich - Initial contribution
  */
 public class AvmTr064Handler extends BaseThingHandler {
 
     private Logger logger = LoggerFactory.getLogger(AvmTr064Handler.class);
 
-	public AvmTr064Handler(Thing thing) {
-		super(thing);
-	}
+    public AvmTr064Handler(Thing thing) {
+        super(thing);
+    }
 
-	@Override
-	public void handleCommand(ChannelUID channelUID, Command command) {
-        if(channelUID.getId().equals(CHANNEL_1)) {
+    @Override
+    public void handleCommand(ChannelUID channelUID, Command command) {
+        if (channelUID.getId().equals(CHANNEL_CONNSTATUS)) {
             // TODO: handle command
 
             // Note: if communication with thing fails for some reason,
@@ -41,7 +41,7 @@ public class AvmTr064Handler extends BaseThingHandler {
             // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
             // "Could not control device at IP address x.x.x.x");
         }
-	}
+    }
 
     @Override
     public void initialize() {

@@ -10,19 +10,19 @@ package org.openhab.binding.avmtr064;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 
 /**
- * The {@link AvmTr064Binding} class defines common constants, which are 
+ * The {@link AvmTr064Binding} class defines common constants, which are
  * used across the whole binding.
- * 
+ *
  * @author Jan Siebeneich - Initial contribution
  */
 public class AvmTr064BindingConstants {
 
     public static final String BINDING_ID = "avmtr064";
-    
+
     // List of all Thing Type UIDs
-    public final static ThingTypeUID THING_TYPE_SAMPLE = new ThingTypeUID(BINDING_ID, "sample");
+    public final static ThingTypeUID THING_TYPE_FRITZBOX = new ThingTypeUID(BINDING_ID, "fritzbox");
 
     // List of all Channel ids
-    public final static String CHANNEL_1 = "channel1";
+    public final static String CHANNEL_CONNSTATUS = "channel-connstatus";
 
 }
