@@ -19,16 +19,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link AvmTr064Handler} is responsible for handling commands, which are
+ * The {@link FritzBoxHandler} is responsible for handling commands, which are
  * sent to one of the channels.
  *
  * @author Jan Siebeneich - Initial contribution
  */
-public class AvmTr064Handler extends BaseThingHandler {
+public class FritzBoxHandler extends BaseThingHandler {
 
-    private Logger logger = LoggerFactory.getLogger(AvmTr064Handler.class);
+    private Logger logger = LoggerFactory.getLogger(FritzBoxHandler.class);
 
-    public AvmTr064Handler(Thing thing) {
+    public FritzBoxHandler(Thing thing) {
         super(thing);
     }
 

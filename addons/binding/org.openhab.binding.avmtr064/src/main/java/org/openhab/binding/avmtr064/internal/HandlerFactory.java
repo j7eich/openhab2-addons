@@ -17,7 +17,7 @@ import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandlerFactory;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
-import org.openhab.binding.avmtr064.handler.AvmTr064Handler;
+import org.openhab.binding.avmtr064.handler.FritzBoxHandler;
 
 /**
  * The {@link HandlerFactory} is responsible for creating things and thing
@@ -40,7 +40,7 @@ public class HandlerFactory extends BaseThingHandlerFactory {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
 
         if (thingTypeUID.equals(THING_TYPE_FRITZBOX)) {
-            return new AvmTr064Handler(thing);
+            return new FritzBoxHandler(thing);
         }
 
         return null;
