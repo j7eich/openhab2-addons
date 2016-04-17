@@ -8,7 +8,11 @@
  */
 package org.openhab.binding.avmtr064;
 
+import java.util.Set;
+
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * The {@link AvmTr064Binding} class defines common constants, which are
@@ -24,6 +28,8 @@ public class AvmTr064BindingConstants {
     public final static ThingTypeUID THING_TYPE_FRITZBOX = new ThingTypeUID(BINDING_ID, "fritzbox");
 
     // List of all Channel ids
-    public final static String CHANNEL_CONNSTATUS = "channel-connstatus";
+    public final static String CHANNEL_CONNSTATUS = "connectionstatus";
+
+    public final static Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = ImmutableSet.of(THING_TYPE_FRITZBOX);
 
 }
