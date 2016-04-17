@@ -8,7 +8,7 @@
  */
 package org.openhab.binding.avmtr064.handler;
 
-import static org.openhab.binding.avmtr064.AvmTr064BindingConstants.CHANNEL_CONNSTATUS;
+import static org.openhab.binding.avmtr064.BindingConstants.CHANNEL_CONNSTATUS;
 
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;

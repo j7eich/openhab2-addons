@@ -8,7 +8,7 @@
  */
 package org.openhab.binding.avmtr064.internal;
 
-import static org.openhab.binding.avmtr064.AvmTr064BindingConstants.THING_TYPE_FRITZBOX;
+import static org.openhab.binding.avmtr064.BindingConstants.THING_TYPE_FRITZBOX;
 
 import java.util.Collections;
 import java.util.Set;

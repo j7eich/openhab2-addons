@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableSet;
  *
  * @author Jan Siebeneich - Initial contribution
  */
-public class AvmTr064BindingConstants {
+public class BindingConstants {
 
     public static final String BINDING_ID = "avmtr064";
 
