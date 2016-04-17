@@ -108,8 +108,22 @@
 			</parameter>
 		</config-description>
     </thing-type>
+    <thing-type id="FRITZ_BOX">
+    	<label>FRITZ!Box</label>
+    	<description>FRITZ!Box with its various channels</description>
+    	<channel-groups>
+    		<channel-group typeId="system-grp" id="system-grp" />
+    	</channel-groups>
+    </thing-type><!--Channel group definitions of FRITZ devices-->
+    <channel-group-type id="system-grp">
+    	<label>System</label>
+    	<description>Several System Channels</description>
+    	<channels>
+    		<channel typeId="fw-upgrade" id="fw-upgrade"></channel>
+    	</channels>
+    </channel-group-type>
 
-	<!-- Channel definitions of fritz devices -->
+    <!-- Channel definitions of fritz devices -->
 	<channel-type id="temperature">
 		<item-type>Number</item-type>
 		<label>Actual Temperature</label>
@@ -137,6 +151,11 @@
         <description>Switched outlet</description>
         <category>PowerOutlet</category>
 		<state readOnly="false"/>
+    </channel-type>
+    <channel-type id="fw-update">
+    	<item-type>Switch</item-type>
+    	<label>Firmware Upgrade available</label>
+    	<state readOnly="true"></state>
     </channel-type>
 
 </thing:thing-descriptions>
