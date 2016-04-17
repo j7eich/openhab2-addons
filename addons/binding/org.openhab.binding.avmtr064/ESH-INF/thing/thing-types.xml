@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="avmtr064"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:thing="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0"
+        xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
+
+    <!-- Sample Thing Type -->
+    <thing-type id="sample">
+        <label>AvmTr064 Binding Thing</label>
+        <description>Sample thing for AvmTr064 Binding</description>
+
+        <channels>
+            <channel id="channel1" typeId="sample-channel"/>
+        </channels>
+    </thing-type>
+
+    <!-- Sample Channel Type -->
+    <channel-type id="sample-channel">
+        <item-type>avmtr064Item</item-type>
+        <label>AvmTr064 Binding Channel</label>
+        <description>Sample channel for AvmTr064 Binding</description>
+    </channel-type>
+
+</thing:thing-descriptions>
