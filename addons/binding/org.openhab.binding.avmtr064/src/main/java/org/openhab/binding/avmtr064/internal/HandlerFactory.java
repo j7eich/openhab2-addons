@@ -20,12 +20,12 @@ import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.openhab.binding.avmtr064.handler.AvmTr064Handler;
 
 /**
- * The {@link AvmTr064HandlerFactory} is responsible for creating things and thing
+ * The {@link HandlerFactory} is responsible for creating things and thing
  * handlers.
  *
  * @author Jan Siebeneich - Initial contribution
  */
-public class AvmTr064HandlerFactory extends BaseThingHandlerFactory {
+public class HandlerFactory extends BaseThingHandlerFactory {
 
     private final static Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Collections.singleton(THING_TYPE_FRITZBOX);
 

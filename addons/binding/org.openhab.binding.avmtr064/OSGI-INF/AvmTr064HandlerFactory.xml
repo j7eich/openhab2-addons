@@ -11,7 +11,7 @@
 -->
 <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" immediate="true" name="binding.avmtr064">
 
-   <implementation class="org.openhab.binding.avmtr064.internal.AvmTr064HandlerFactory"/>
+   <implementation class="org.openhab.binding.avmtr064.internal.HandlerFactory"/>
 
    <service>
       <provide interface="org.eclipse.smarthome.core.thing.binding.ThingHandlerFactory"/>
