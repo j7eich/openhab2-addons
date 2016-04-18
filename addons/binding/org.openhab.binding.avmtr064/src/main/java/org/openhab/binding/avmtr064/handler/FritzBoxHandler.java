@@ -31,6 +31,7 @@ import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.openhab.binding.avmtr064.BindingConstants;
+import org.openhab.binding.avmtr064.config.FritzBoxConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,6 +64,11 @@ public class FritzBoxHandler extends BaseThingHandler {
     @Override
     public void initialize() {
         logger.debug("Initializing " + BindingConstants.THING_TYPE_FRITZBOX);
+
+        FritzBoxConfiguration config = this.getConfigAs(FritzBoxConfiguration.class);
+
+        logger.debug(BindingConstants.THING_TYPE_FRITZBOX + " config: " + config.toString());
+
         // TODO: Initialize the thing. If done set status to ONLINE to indicate proper working.
         // Long running initialization should be done asynchronously in background.
         updateStatus(ThingStatus.INITIALIZING);
@@ -89,16 +95,20 @@ public class FritzBoxHandler extends BaseThingHandler {
             QName bodyName = new QName("urn:dslforum-org:service:DeviceInfo:1", "GetSecurityPort", "u");
             msgBody.addBodyElement(bodyName);
 
-            URL endpoint = new URL("http://192.168.28.1:49000/upnp/control/deviceinfo");
+            String sUrl = "http://" + config.getIpAddress() + ":" + config.getPort().toString()
+                    + "/upnp/control/deviceinfo";
+
+            URL endpoint = new URL(sUrl);
             SOAPMessage response = soapConnection.call(message, endpoint);
 
             soapConnection.close();
 
             SOAPBody respBody = response.getSOAPBody();
+            QName myQName = new QName("urn:dslforum-org:service:DeviceInfo:1", "GetSecurityPortResponse");
 
-            Iterator bodyIterator = respBody.getChildElements();
+            Iterator bodyIterator = respBody.getChildElements(myQName);
             SOAPBodyElement bodyElement = (SOAPBodyElement) bodyIterator.next();
-            Iterator elementIterator = bodyElement.getChildElements();
+            Iterator elementIterator = bodyElement.getChildElements(new QName("NewSecurityPort"));
             SOAPElement el = (SOAPElement) elementIterator.next();
             if (el.getLocalName() == "NewSecurityPort") {
                 logger.debug(el.getValue());

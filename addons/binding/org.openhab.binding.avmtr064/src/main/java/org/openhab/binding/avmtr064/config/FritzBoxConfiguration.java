@@ -8,9 +8,11 @@
  */
 package org.openhab.binding.avmtr064.config;
 
+import org.apache.commons.lang.builder.ToStringBuilder;
+
 /**
  * Class holding configuration data according for FritzBox device
- * 
+ *
  * @author Jan Siebeneich
  *
  */
@@ -37,11 +39,11 @@ public class FritzBoxConfiguration {
         this.port = port;
     }
 
-    public String getUsername() {
+    public String getUser() {
         return this.user;
     }
 
-    public void setUsername(String user) {
+    public void setUser(String user) {
         this.user = user;
     }
 
@@ -51,5 +53,16 @@ public class FritzBoxConfiguration {
 
     public void setPassword(String pwd) {
         this.password = pwd;
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this).append("IP", this.getIpAddress()).append("port", this.getPort())
+                // .append("proto", this.getProtocol())
+                .append("user", this.getUser()).append("password", this.getPassword())
+                // .append("pollingInterval", this.getPollingInterval())
+                // .append("asyncTimeout", this.getAsyncTimeout())
+                // .append("syncTimeout", this.getSyncTimeout())
+                .toString();
     }
 }
