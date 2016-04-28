@@ -11,6 +11,7 @@ package org.openhab.binding.avmtr064.internal;
 public class Tr064Argument {
 
     private String name;
+    private String value;
     private String associatedVariable;
 
     public String getName() {
@@ -19,6 +20,14 @@ public class Tr064Argument {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
     }
 
     public String getAssociatedVariable() {
