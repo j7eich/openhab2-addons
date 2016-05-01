@@ -68,6 +68,7 @@ public class FritzBoxHandler extends BaseThingHandler {
     private static final String TR064_NODE_NAME = "name";
     private static final String TR064_NODE_DATA_TYPE = "dataType";
     private static final String TR064_NODE_ARGUMENT_LIST = "argumentList";
+    private static final String TR064_NODE_ARGUMENT = "argument";
     private static final String TR064_NODE_DIRECTION = "direction";
     private static final String TR064_NODE_RELATED_STATE_VARIABLE = "relatedStateVariable";
     private static final String TR064_NODE_ACTION = "action";
@@ -78,8 +79,8 @@ public class FritzBoxHandler extends BaseThingHandler {
     private static final String MIME_HEADERS_SOAPACTION = "SOAPACTION";
 
     private Logger logger = LoggerFactory.getLogger(FritzBoxHandler.class);
-    private String baseUrl;
-    private List<Tr064Service> services;
+    private String baseUrl = "";
+    private List<Tr064Service> services = new ArrayList<Tr064Service>();
 
     public FritzBoxHandler(Thing thing) {
         super(thing);
@@ -123,55 +124,6 @@ public class FritzBoxHandler extends BaseThingHandler {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.HANDLER_INITIALIZING_ERROR);
         }
 
-        // try {
-        // // TODO: This is a first SOAP communication test implementation. To be changed:
-        // // -> read configuration to get host (set by manual config or service discovery)
-        // // -> read tr64desc.xml, obtain service information
-        // // -> use information to construct SOAP requests.
-        // SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
-        // SOAPConnection soapConnection = soapConnectionFactory.createConnection();
-        //
-        // MessageFactory msgFactory = MessageFactory.newInstance();
-        // SOAPMessage message = msgFactory.createMessage();
-        // message.setProperty(SOAPMessage.WRITE_XML_DECLARATION, "true");
-        //
-        // MimeHeaders mimeHeaders = message.getMimeHeaders();
-        // mimeHeaders.addHeader("SOAPACTION", "urn:dslforum-org:service:DeviceInfo:1#GetSecurityPort");
-        //
-        // SOAPHeader msgHeader = message.getSOAPHeader();
-        // SOAPBody msgBody = message.getSOAPBody();
-        //
-        // msgHeader.detachNode();
-        //
-        // QName bodyName = new QName("urn:dslforum-org:service:DeviceInfo:1", "GetSecurityPort", "u");
-        // msgBody.addBodyElement(bodyName);
-        //
-        // String sUrl = "http://" + config.getIpAddress() + ":" + config.getPort().toString()
-        // + "/upnp/control/deviceinfo";
-        //
-        // URL endpoint = new URL(sUrl);
-        // SOAPMessage response = soapConnection.call(message, endpoint);
-        //
-        // soapConnection.close();
-        //
-        // SOAPBody respBody = response.getSOAPBody();
-        // QName myQName = new QName("urn:dslforum-org:service:DeviceInfo:1", "GetSecurityPortResponse");
-        //
-        // Iterator bodyIterator = respBody.getChildElements(myQName);
-        // SOAPBodyElement bodyElement = (SOAPBodyElement) bodyIterator.next();
-        // Iterator elementIterator = bodyElement.getChildElements(new QName("NewSecurityPort"));
-        // SOAPElement el = (SOAPElement) elementIterator.next();
-        // if (el.getLocalName() == "NewSecurityPort") {
-        // logger.debug(el.getValue());
-        // }
-        //
-        // updateStatus(ThingStatus.ONLINE);
-        //
-        // } catch (Exception ex) {
-        // logger.error(ex.toString());
-        // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.HANDLER_INITIALIZING_ERROR);
-        // }
-
         // Note: When initialization can NOT be done set the status with more details for further
         // analysis. See also class ThingStatusDetail for all available status details.
         // Add a description to give user information to understand why thing does not work
@@ -190,21 +142,28 @@ public class FritzBoxHandler extends BaseThingHandler {
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
             Document doc = dBuilder.parse(response);
+            doc.normalizeDocument();
 
             NodeList nodeListService = doc.getElementsByTagName(TR064_NODE_SERVICE);
+            logger.debug("Read " + nodeListService.getLength() + " services from " + descriptionPath);
             for (int i = 0; i < nodeListService.getLength(); ++i) {
                 Node nodeService = nodeListService.item(i);
                 Tr064Service tr064Service = new Tr064Service();
-
                 NodeList nodeListServiceChildren = nodeService.getChildNodes();
                 for (int ii = 0; ii < nodeListServiceChildren.getLength(); ++ii) {
                     Node childNode = nodeListServiceChildren.item(ii);
-                    if (childNode.getNodeName() == TR064_NODE_SERVICE_TYPE) {
-                        tr064Service.setServiceType(childNode.getNodeValue());
-                    } else if (childNode.getNodeName() == TR064_NODE_CONTROL_URL) {
-                        tr064Service.setControlUrl(childNode.getNodeValue());
-                    } else if (childNode.getNodeName() == TR064_NODE_SCPD_URL) {
-                        tr064Service.setScpdUrl(childNode.getNodeValue());
+                    switch (childNode.getNodeName()) {
+                        case TR064_NODE_SERVICE_TYPE:
+                            tr064Service.setServiceType(childNode.getTextContent());
+                            break;
+                        case TR064_NODE_CONTROL_URL:
+                            tr064Service.setControlUrl(childNode.getTextContent());
+                            break;
+                        case TR064_NODE_SCPD_URL:
+                            tr064Service.setScpdUrl(childNode.getTextContent());
+                            break;
+                        default:
+                            break;
                     }
                 }
 
@@ -214,6 +173,7 @@ public class FritzBoxHandler extends BaseThingHandler {
                     InputStream scpdResponse = scpdConnection.getInputStream();
 
                     Document scpdDoc = dBuilder.parse(scpdResponse);
+                    scpdDoc.normalizeDocument();
 
                     NodeList nodeListVariables = scpdDoc.getElementsByTagName(TR064_NODE_STATE_VARIABLE);
                     for (int ii = 0; ii < nodeListVariables.getLength(); ++ii) {
@@ -223,10 +183,15 @@ public class FritzBoxHandler extends BaseThingHandler {
                         NodeList nodeListVariableChildren = nodeVariable.getChildNodes();
                         for (int iii = 0; iii < nodeListVariableChildren.getLength(); ++iii) {
                             Node childNode = nodeListVariableChildren.item(iii);
-                            if (childNode.getNodeName() == TR064_NODE_NAME) {
-                                tr064Variable.setName(childNode.getNodeValue());
-                            } else if (childNode.getNodeName() == TR064_NODE_DATA_TYPE) {
-                                tr064Variable.setType(childNode.getNodeValue());
+                            switch (childNode.getNodeName()) {
+                                case TR064_NODE_NAME:
+                                    tr064Variable.setName(childNode.getTextContent());
+                                    break;
+                                case TR064_NODE_DATA_TYPE:
+                                    tr064Variable.setType(childNode.getTextContent());
+                                    break;
+                                default:
+                                    break;
                             }
                         }
                         tr064Service.addVariable(tr064Variable);
@@ -240,26 +205,30 @@ public class FritzBoxHandler extends BaseThingHandler {
                         NodeList nodeListActionChildren = nodeAction.getChildNodes();
                         for (int iii = 0; iii < nodeListActionChildren.getLength(); ++iii) {
                             Node childNode = nodeListActionChildren.item(iii);
-                            if (childNode.getNodeName() == TR064_NODE_NAME) {
-                                tr064Action.setName(childNode.getNodeValue());
-                            } else if (childNode.getNodeName() == TR064_NODE_ARGUMENT_LIST) {
+                            if (childNode.getNodeName().equals(TR064_NODE_NAME)) {
+                                tr064Action.setName(childNode.getTextContent());
+
+                            } else if (childNode.getNodeName().equals(TR064_NODE_ARGUMENT_LIST)) {
                                 NodeList nodeListArguments = childNode.getChildNodes();
                                 for (int j = 0; j < nodeListArguments.getLength(); ++j) {
                                     Node nodeArgument = nodeListArguments.item(j);
+                                    if (nodeArgument.getNodeName() != TR064_NODE_ARGUMENT) {
+                                        continue;
+                                    }
                                     Tr064Argument tr064Argument = new Tr064Argument();
 
                                     NodeList nodeListArgumentChildren = nodeArgument.getChildNodes();
                                     boolean bIn = false;
                                     for (int jj = 0; jj < nodeListArgumentChildren.getLength(); ++jj) {
                                         Node argumentChildNode = nodeListArgumentChildren.item(jj);
-                                        if (argumentChildNode.getNodeName() == TR064_NODE_NAME) {
-                                            tr064Argument.setName(argumentChildNode.getNodeValue());
-                                        } else if (argumentChildNode.getNodeName() == TR064_NODE_DIRECTION
-                                                && argumentChildNode.getNodeValue() == TR064_DIRECTION_IN) {
+                                        if (argumentChildNode.getNodeName().equals(TR064_NODE_NAME)) {
+                                            tr064Argument.setName(argumentChildNode.getTextContent());
+                                        } else if (argumentChildNode.getNodeName().equals(TR064_NODE_DIRECTION)
+                                                && argumentChildNode.getTextContent().equals(TR064_DIRECTION_IN)) {
                                             bIn = true;
-                                        } else
-                                            if (argumentChildNode.getNodeName() == TR064_NODE_RELATED_STATE_VARIABLE) {
-                                            tr064Argument.setAssociatedVariable(argumentChildNode.getNodeValue());
+                                        } else if (argumentChildNode.getNodeName()
+                                                .equals(TR064_NODE_RELATED_STATE_VARIABLE)) {
+                                            tr064Argument.setAssociatedVariable(argumentChildNode.getTextContent());
                                         }
                                     }
                                     if (bIn == true) {
@@ -283,6 +252,8 @@ public class FritzBoxHandler extends BaseThingHandler {
             ex.printStackTrace();
         } catch (SAXException ex) {
             // TODO Auto-generated catch block
+            ex.printStackTrace();
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
@@ -323,12 +294,12 @@ public class FritzBoxHandler extends BaseThingHandler {
             ListIterator<Tr064Service> itService = services.listIterator();
             while (itService.hasNext()) {
                 Tr064Service service = itService.next();
-                if (service.getServiceType() == serviceType) {
+                if (service.getServiceType().equals(serviceType)) {
                     Iterator<Tr064Action> itAction = service.getActions();
                     boolean actionFound = false;
                     while (itAction.hasNext()) {
                         Tr064Action action = itAction.next();
-                        if (action.getName() == actionName) {
+                        if (action.getName().equals(actionName)) {
                             Iterator<Tr064Argument> itArgIn = action.getArgumentsIn();
                             while (itArgIn.hasNext()) {
                                 Tr064Argument arg = itArgIn.next();
@@ -337,7 +308,7 @@ public class FritzBoxHandler extends BaseThingHandler {
                                 boolean bMatch = false;
                                 while (itGivenArgs.hasNext()) {
                                     Tr064Argument givenArg = itGivenArgs.next();
-                                    if (givenArg.getName() == argName) {
+                                    if (givenArg.getName().equals(argName)) {
                                         bMatch = true;
                                         msgBody.addChildElement(argName).addTextNode(givenArg.getValue());
                                         break;
@@ -356,7 +327,7 @@ public class FritzBoxHandler extends BaseThingHandler {
                                 boolean bMatch = false;
                                 while (itGivenArgs.hasNext()) {
                                     Tr064Argument givenArg = itGivenArgs.next();
-                                    if (givenArg.getName() == argName) {
+                                    if (givenArg.getName().equals(argName)) {
                                         bMatch = true;
                                         break;
                                     }
@@ -391,12 +362,16 @@ public class FritzBoxHandler extends BaseThingHandler {
 
             Iterator elementIterator = bodyElement.getChildElements();
             while (elementIterator.hasNext()) {
-                SOAPElement el = (SOAPElement) elementIterator.next();
+                Node n = (Node) elementIterator.next();
+                if (n.getNodeType() != Node.ELEMENT_NODE) {
+                    continue;
+                }
+                SOAPElement el = (SOAPElement) n;
                 String elementName = el.getLocalName();
                 ListIterator<Tr064Argument> itGivenArgs = arguments.listIterator();
                 while (itGivenArgs.hasNext()) {
                     Tr064Argument givenArg = itGivenArgs.next();
-                    if (givenArg.getName() == elementName) {
+                    if (givenArg.getName().equals(elementName)) {
                         givenArg.setValue(el.getValue());
                     }
                 }
