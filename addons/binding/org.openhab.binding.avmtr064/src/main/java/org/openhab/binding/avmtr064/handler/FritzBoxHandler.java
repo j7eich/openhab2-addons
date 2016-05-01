@@ -12,6 +12,7 @@ import static org.openhab.binding.avmtr064.BindingConstants.CHANNEL_CONNSTATUS;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -132,130 +133,162 @@ public class FritzBoxHandler extends BaseThingHandler {
         // "Can not access device as username and/or password are invalid");
     }
 
-    private void initServices(String descriptionPath) {
+    private boolean initServices(String descriptionPath) {
+        services.clear();
+
+        Document doc = null;
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dBuilder;
+        try {
+            dBuilder = dbFactory.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return false;
+        }
+
         try {
             URL descriptionUrl = new URL(baseUrl + descriptionPath);
             URLConnection myConnection = descriptionUrl.openConnection();
             InputStream response = myConnection.getInputStream();
+            doc = dBuilder.parse(response);
+        } catch (IOException ex) {
+            // TODO Auto-generated catch block
+            ex.printStackTrace();
+            return false;
+        } catch (SAXException ex) {
+            // TODO Auto-generated catch block
+            ex.printStackTrace();
+            return false;
+        }
 
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+        doc.normalizeDocument();
 
-            Document doc = dBuilder.parse(response);
-            doc.normalizeDocument();
+        NodeList nodeListService = doc.getElementsByTagName(TR064_NODE_SERVICE);
+        for (int i = 0; i < nodeListService.getLength(); ++i) {
+            Node nodeService = nodeListService.item(i);
+            Tr064Service tr064Service = new Tr064Service();
+            NodeList nodeListServiceChildren = nodeService.getChildNodes();
+            for (int ii = 0; ii < nodeListServiceChildren.getLength(); ++ii) {
+                Node childNode = nodeListServiceChildren.item(ii);
+                switch (childNode.getNodeName()) {
+                    case TR064_NODE_SERVICE_TYPE:
+                        tr064Service.setServiceType(childNode.getTextContent());
+                        break;
+                    case TR064_NODE_CONTROL_URL:
+                        tr064Service.setControlUrl(childNode.getTextContent());
+                        break;
+                    case TR064_NODE_SCPD_URL:
+                        tr064Service.setScpdUrl(childNode.getTextContent());
+                        break;
+                    default:
+                        break;
+                }
+            }
 
-            NodeList nodeListService = doc.getElementsByTagName(TR064_NODE_SERVICE);
-            logger.debug("Read " + nodeListService.getLength() + " services from " + descriptionPath);
-            for (int i = 0; i < nodeListService.getLength(); ++i) {
-                Node nodeService = nodeListService.item(i);
-                Tr064Service tr064Service = new Tr064Service();
-                NodeList nodeListServiceChildren = nodeService.getChildNodes();
-                for (int ii = 0; ii < nodeListServiceChildren.getLength(); ++ii) {
-                    Node childNode = nodeListServiceChildren.item(ii);
+            if (tr064Service.getServiceType().isEmpty() == false) {
+                services.add(tr064Service);
+            }
+        }
+
+        //
+
+        Iterator<Tr064Service> itServices = services.iterator();
+        while (itServices.hasNext()) {
+            Tr064Service service = itServices.next();
+            try {
+                URL scpdUrl = new URL(baseUrl + service.getScpdUrl());
+                URLConnection scpdConnection = scpdUrl.openConnection();
+                InputStream scpdResponse = scpdConnection.getInputStream();
+
+                doc = dBuilder.parse(scpdResponse);
+                doc.normalizeDocument();
+            } catch (MalformedURLException ex) {
+                // TODO Auto-generated catch block
+                ex.printStackTrace();
+                continue;
+            } catch (IOException ex) {
+                // TODO Auto-generated catch block
+                ex.printStackTrace();
+                continue;
+            } catch (SAXException ex) {
+                // TODO Auto-generated catch block
+                ex.printStackTrace();
+                continue;
+            }
+
+            NodeList nodeListVariables = doc.getElementsByTagName(TR064_NODE_STATE_VARIABLE);
+            for (int i = 0; i < nodeListVariables.getLength(); ++i) {
+                Node nodeVariable = nodeListVariables.item(i);
+                Tr064Variable tr064Variable = new Tr064Variable();
+
+                NodeList nodeListVariableChildren = nodeVariable.getChildNodes();
+                for (int j = 0; j < nodeListVariableChildren.getLength(); ++j) {
+                    Node childNode = nodeListVariableChildren.item(j);
                     switch (childNode.getNodeName()) {
-                        case TR064_NODE_SERVICE_TYPE:
-                            tr064Service.setServiceType(childNode.getTextContent());
+                        case TR064_NODE_NAME:
+                            tr064Variable.setName(childNode.getTextContent());
                             break;
-                        case TR064_NODE_CONTROL_URL:
-                            tr064Service.setControlUrl(childNode.getTextContent());
-                            break;
-                        case TR064_NODE_SCPD_URL:
-                            tr064Service.setScpdUrl(childNode.getTextContent());
+                        case TR064_NODE_DATA_TYPE:
+                            tr064Variable.setType(childNode.getTextContent());
                             break;
                         default:
                             break;
                     }
                 }
-
-                if (tr064Service.getScpdUrl() != null) {
-                    URL scpdUrl = new URL(baseUrl + tr064Service.getScpdUrl());
-                    URLConnection scpdConnection = scpdUrl.openConnection();
-                    InputStream scpdResponse = scpdConnection.getInputStream();
-
-                    Document scpdDoc = dBuilder.parse(scpdResponse);
-                    scpdDoc.normalizeDocument();
-
-                    NodeList nodeListVariables = scpdDoc.getElementsByTagName(TR064_NODE_STATE_VARIABLE);
-                    for (int ii = 0; ii < nodeListVariables.getLength(); ++ii) {
-                        Node nodeVariable = nodeListVariables.item(ii);
-                        Tr064Variable tr064Variable = new Tr064Variable();
-
-                        NodeList nodeListVariableChildren = nodeVariable.getChildNodes();
-                        for (int iii = 0; iii < nodeListVariableChildren.getLength(); ++iii) {
-                            Node childNode = nodeListVariableChildren.item(iii);
-                            switch (childNode.getNodeName()) {
-                                case TR064_NODE_NAME:
-                                    tr064Variable.setName(childNode.getTextContent());
-                                    break;
-                                case TR064_NODE_DATA_TYPE:
-                                    tr064Variable.setType(childNode.getTextContent());
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        tr064Service.addVariable(tr064Variable);
-                    }
-
-                    NodeList nodeListActions = scpdDoc.getElementsByTagName(TR064_NODE_ACTION);
-                    for (int ii = 0; ii < nodeListActions.getLength(); ++ii) {
-                        Node nodeAction = nodeListActions.item(ii);
-                        Tr064Action tr064Action = new Tr064Action();
-
-                        NodeList nodeListActionChildren = nodeAction.getChildNodes();
-                        for (int iii = 0; iii < nodeListActionChildren.getLength(); ++iii) {
-                            Node childNode = nodeListActionChildren.item(iii);
-                            if (childNode.getNodeName().equals(TR064_NODE_NAME)) {
-                                tr064Action.setName(childNode.getTextContent());
-
-                            } else if (childNode.getNodeName().equals(TR064_NODE_ARGUMENT_LIST)) {
-                                NodeList nodeListArguments = childNode.getChildNodes();
-                                for (int j = 0; j < nodeListArguments.getLength(); ++j) {
-                                    Node nodeArgument = nodeListArguments.item(j);
-                                    if (nodeArgument.getNodeName() != TR064_NODE_ARGUMENT) {
-                                        continue;
-                                    }
-                                    Tr064Argument tr064Argument = new Tr064Argument();
-
-                                    NodeList nodeListArgumentChildren = nodeArgument.getChildNodes();
-                                    boolean bIn = false;
-                                    for (int jj = 0; jj < nodeListArgumentChildren.getLength(); ++jj) {
-                                        Node argumentChildNode = nodeListArgumentChildren.item(jj);
-                                        if (argumentChildNode.getNodeName().equals(TR064_NODE_NAME)) {
-                                            tr064Argument.setName(argumentChildNode.getTextContent());
-                                        } else if (argumentChildNode.getNodeName().equals(TR064_NODE_DIRECTION)
-                                                && argumentChildNode.getTextContent().equals(TR064_DIRECTION_IN)) {
-                                            bIn = true;
-                                        } else if (argumentChildNode.getNodeName()
-                                                .equals(TR064_NODE_RELATED_STATE_VARIABLE)) {
-                                            tr064Argument.setAssociatedVariable(argumentChildNode.getTextContent());
-                                        }
-                                    }
-                                    if (bIn == true) {
-                                        tr064Action.addArgumentIn(tr064Argument);
-                                    } else {
-                                        tr064Action.addArgumentOut(tr064Argument);
-                                    }
-                                }
-                            }
-                        }
-                        tr064Service.addAction(tr064Action);
-                    }
-                    services.add(tr064Service);
+                if (tr064Variable.getName().isEmpty() == false && tr064Variable.getType().isEmpty() == false) {
+                    service.addVariable(tr064Variable);
                 }
             }
-        } catch (IOException ex) {
-            // TODO Auto-generated catch block
-            ex.printStackTrace();
-        } catch (ParserConfigurationException ex) {
-            // TODO Auto-generated catch block
-            ex.printStackTrace();
-        } catch (SAXException ex) {
-            // TODO Auto-generated catch block
-            ex.printStackTrace();
-        } catch (Exception ex) {
-            ex.printStackTrace();
+
+            //
+
+            NodeList nodeListActions = doc.getElementsByTagName(TR064_NODE_ACTION);
+            for (int i = 0; i < nodeListActions.getLength(); ++i) {
+                Node nodeAction = nodeListActions.item(i);
+                Tr064Action tr064Action = new Tr064Action();
+
+                NodeList nodeListActionChildren = nodeAction.getChildNodes();
+                for (int j = 0; j < nodeListActionChildren.getLength(); ++j) {
+                    Node childNode = nodeListActionChildren.item(j);
+                    if (childNode.getNodeName().equals(TR064_NODE_NAME)) {
+                        tr064Action.setName(childNode.getTextContent());
+                    } else if (childNode.getNodeName().equals(TR064_NODE_ARGUMENT_LIST)) {
+                        NodeList nodeListArguments = childNode.getChildNodes();
+                        for (int k = 0; k < nodeListArguments.getLength(); ++k) {
+                            Node nodeArgument = nodeListArguments.item(k);
+                            if (nodeArgument.getNodeName() != TR064_NODE_ARGUMENT) {
+                                continue;
+                            }
+                            Tr064Argument tr064Argument = new Tr064Argument();
+
+                            NodeList nodeListArgumentChildren = nodeArgument.getChildNodes();
+                            boolean bIn = false;
+                            for (int kk = 0; kk < nodeListArgumentChildren.getLength(); ++kk) {
+                                Node argumentChildNode = nodeListArgumentChildren.item(kk);
+                                if (argumentChildNode.getNodeName().equals(TR064_NODE_NAME)) {
+                                    tr064Argument.setName(argumentChildNode.getTextContent());
+                                } else if (argumentChildNode.getNodeName().equals(TR064_NODE_DIRECTION)
+                                        && argumentChildNode.getTextContent().equals(TR064_DIRECTION_IN)) {
+                                    bIn = true;
+                                } else if (argumentChildNode.getNodeName().equals(TR064_NODE_RELATED_STATE_VARIABLE)) {
+                                    tr064Argument.setAssociatedVariable(argumentChildNode.getTextContent());
+                                }
+                            }
+                            if (bIn == true) {
+                                tr064Action.addArgumentIn(tr064Argument);
+                            } else {
+                                tr064Action.addArgumentOut(tr064Argument);
+                            }
+                        }
+                    }
+                }
+                if (tr064Action.getName().isEmpty() == false) {
+                    service.addAction(tr064Action);
+                }
+            }
         }
+        return true;
     }
 
     private boolean invokeSoapAction(String actionPath, List<Tr064Argument> arguments) {
