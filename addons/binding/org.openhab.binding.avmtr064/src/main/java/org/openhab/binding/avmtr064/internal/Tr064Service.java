@@ -12,9 +12,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 public class Tr064Service {
-    private String serviceType;
-    private String controlUrl;
-    private String scpdUrl;
+    private String serviceType = "";
+    private String controlUrl = "";
+    private String scpdUrl = "";
     private ArrayList<Tr064Action> listActions = new ArrayList<Tr064Action>();
     private ArrayList<Tr064Variable> listVariables = new ArrayList<Tr064Variable>();
 
