@@ -8,15 +8,15 @@
  */
 package org.openhab.binding.avmtr064.internal;
 
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 public class Tr064Service {
     private String serviceType;
     private String controlUrl;
     private String scpdUrl;
-    private List<Tr064Action> listActions;
-    private List<Tr064Variable> listVariables;
+    private ArrayList<Tr064Action> listActions = new ArrayList<Tr064Action>();
+    private ArrayList<Tr064Variable> listVariables = new ArrayList<Tr064Variable>();
 
     public void setServiceType(String sType) {
         this.serviceType = sType;
