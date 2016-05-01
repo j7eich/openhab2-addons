@@ -9,8 +9,8 @@
 package org.openhab.binding.avmtr064.internal;
 
 public class Tr064Variable {
-    private String name;
-    private String type;
+    private String name = "";
+    private String type = "";
 
     public String getName() {
         return name;

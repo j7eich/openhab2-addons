@@ -14,7 +14,7 @@ import java.util.List;
 
 public class Tr064Action {
 
-    private String name;
+    private String name = "";
     private List<Tr064Argument> argumentsIn = new ArrayList<Tr064Argument>();
     private List<Tr064Argument> argumentsOut = new ArrayList<Tr064Argument>();
 
